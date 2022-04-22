@@ -1,0 +1,34 @@
+name: Name
+description: the command description
+argsusage: help text
+cmd: echo "commmand" && env
+cmds:
+    - echo "$name"
+    - echo "$surname"
+    - echo "$name $surname"
+params:
+  - name: "name"
+    desc: "enter your name"
+  - name: "surname"
+    desc: "enter your surname"
+---
+name: SecondCommand
+description: the command description
+argsusage: help text
+script: ./script.sh
+params:
+  - name: "name"
+    desc: "enter your name"
+  - name: "surname"
+    desc: "enter your surname"
+---
+---
+name: RemoteCommand
+description: the command description
+argsusage: help text
+script: ./script.sh
+params:
+  - name: "name"
+    desc: "enter your name"
+  - name: "surname"
+    desc: "enter your surname"
