@@ -67,4 +67,4 @@ fi
 #compile the tool
 
 bin/task  build-debug
-cp ./tmp/__debug_bin /usr/bin/iac
+cp ./out/debug/bashy /usr/bin/bashy

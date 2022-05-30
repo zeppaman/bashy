@@ -22,11 +22,10 @@ params:
   - name: "surname"
     desc: "enter your surname"
 ---
----
 name: RemoteCommand
 description: the command description
 argsusage: help text
-script: ./script.sh
+script: https://gist.githubusercontent.com/zeppaman/bbdfbac1304f88df1b905692e42f4d4e/raw/22ab3a2163f6ea481bca1b5d5570a964120a4f89/test-bashy.sh
 params:
   - name: "name"
     desc: "enter your name"

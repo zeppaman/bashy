@@ -1,4 +1,4 @@
-package model
+package bashy
 
 type Parameter struct {
 	Name     string
