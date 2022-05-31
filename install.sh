@@ -68,3 +68,5 @@ fi
 
 bin/task  build-debug
 cp ./out/debug/bashy /usr/bin/bashy
+export PATH="$PATH:/home/.bashy/bin"
+echo 'export PATH="$PATH:/home/.bashy/bin' >>~/.profile
