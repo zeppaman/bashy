@@ -8,12 +8,13 @@ import (
 
 func main() {
 
-	bashy := bashy.Bashy{}
-	app, err := bashy.Init()
+	instance := bashy.Bashy{}
+	err := instance.Init()
 	if err == nil {
-		app.Run(os.Args)
+		instance.Run(os.Args)
 	} else {
 		fmt.Println("not an happy ending.")
 		fmt.Println(err)
 	}
+	instance.Destroy()
 }

@@ -1,9 +1,12 @@
 package utils
 
 import (
+	"bytes"
 	"crypto/md5"
+	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"html/template"
 	"os"
 	"path/filepath"
 
@@ -13,12 +16,31 @@ import (
 	// "github.com/urfave/cli/v2"
 	// "gopkg.in/yaml.v2"
 	"bufio"
+	"embed"
 	"errors"
 	"io"
 	"log"
 	"net/http"
 	"strings"
 )
+
+//go:embed templates
+var tpls embed.FS
+
+func Transform(templateName string, data interface{}) string {
+	// Create bin entry
+	t, err := template.ParseFS(tpls, "templates/*")
+	if err != nil {
+		panic(err)
+	}
+
+	var tpl bytes.Buffer
+	if err := t.ExecuteTemplate(&tpl, templateName+".tmpl", data); err != nil {
+		return ""
+	}
+
+	return tpl.String()
+}
 
 func DirectoryExists(name string) bool {
 	return Exists(name)
@@ -35,8 +57,34 @@ func Exists(name string) bool {
 	return false
 }
 
-func WriteToFile(filename string, lines []string) string {
-	file, err := os.CreateTemp(os.TempDir(), "bashy*.sh")
+func TempFileName(prefix, suffix string) string {
+	randBytes := make([]byte, 16)
+	rand.Read(randBytes)
+	return filepath.Join(prefix, hex.EncodeToString(randBytes)+suffix)
+}
+
+func GenerateToken(len int) string {
+	randBytes := make([]byte, len*2)
+	rand.Read(randBytes)
+	random := hex.EncodeToString(randBytes)
+	return random[0:10]
+}
+
+func WriteTextToFile(filename string, content string, mode os.FileMode) string {
+	file, err := os.Create(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	file.WriteString(content)
+	file.Close()
+
+	os.Chmod(file.Name(), mode)
+	return file.Name()
+}
+
+func WriteLinesToFile(filename string, lines []string, mode os.FileMode) string {
+	file, err := os.Create(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,7 +93,8 @@ func WriteToFile(filename string, lines []string) string {
 		file.WriteString(line + "\n")
 	}
 	file.Close()
-	os.Chmod(file.Name(), 0777)
+
+	os.Chmod(file.Name(), mode)
 	return file.Name()
 }
 

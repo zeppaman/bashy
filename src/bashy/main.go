@@ -11,13 +11,11 @@ import (
 	//"bufio"
 	"strings"
 	//"net/http"
-	"embed"
 	"fmt"
 	"io"
 	"io/fs"
 	"io/ioutil"
 	"log"
-	"text/template"
 
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v2"
@@ -25,36 +23,17 @@ import (
 
 type Bashy struct {
 	Home              string
-	app               *cli.App
+	app               cli.App
 	scripts           []*Script
 	ScriptFolder      string
 	CacheFolder       string
 	BinFolder         string
 	BinScriptTemplate string
+	Tmp               string
+	Instance          string
 }
 
-//go:embed templates
-var tpls embed.FS
-
-//go:embed "templates/bin.tmpl"
-var scriptBin string
-
-func NewBashy(home string) Bashy {
-	app := Bashy{}
-	app.Home = home
-	return app
-}
-
-func (re Bashy) Init() (*cli.App, error) {
-
-	fmt.Println(scriptBin)
-	t, err := template.ParseFS(tpls, "templates/*")
-	if err != nil {
-		panic(err)
-	}
-	if err = t.ExecuteTemplate(os.Stdout, "bin.tmpl", nil); err != nil {
-		panic(err)
-	}
+func (re *Bashy) Init() error {
 
 	currentUser, _ := user.Current()
 	re.Home = os.Getenv("BASHY_HOME")
@@ -72,12 +51,12 @@ func (re Bashy) Init() (*cli.App, error) {
 		}
 	}
 
-	re.BinScriptTemplate = scriptBin
-	fmt.Println(re.BinScriptTemplate)
+	re.Instance = utils.GenerateToken(5)
 	re.ScriptFolder = filepath.Join(re.Home, "scripts")
 	re.CacheFolder = filepath.Join(re.Home, "cache")
 	re.BinFolder = filepath.Join(re.Home, "bin")
-	err = os.MkdirAll(re.ScriptFolder, os.ModePerm)
+	re.Tmp = filepath.Join(re.Home, "tmp", re.Instance)
+	err := os.MkdirAll(re.ScriptFolder, os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -91,34 +70,29 @@ func (re Bashy) Init() (*cli.App, error) {
 		log.Fatal(err)
 	}
 
-	cmds := re.loadCommands(re.Home)
-	cmds = append(cmds, re.LoadInternalCommands()...)
-	if len(cmds) == 0 {
-		return nil, errors.New("no commands found")
+	err = os.MkdirAll(re.Tmp, os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	return &cli.App{
+	cmds := re.loadCommands(re.ScriptFolder)
+	cmds = append(cmds, re.LoadInternalCommands()...)
+	if len(cmds) == 0 {
+		return errors.New("no commands found")
+	}
+
+	re.app = cli.App{
 		Name:        "Bashy",
 		Commands:    cmds,
 		Description: "hello! script loaded from " + re.Home,
-		// Flags: []cli.Flag {
-		// 	&cli.StringFlag{Name: "home", Value:home},
-		//   },
-		// Before: func(c *cli.Context) error {
-		//   fmt.Fprintf(c.App.Writer, c.String("home"))
-		//   c.App.Commands= loadCommands()
-		//   return nil
-		// },
-		// After: func(c *cli.Context) error {
-		// 	fmt.Fprintf(c.App.Writer, c.String("home"))
-		// 	c.App.Commands= loadCommands()
-		// 	return nil
-		//   },
-	}, nil
+	}
+	re.app.Commands = cmds
+	return nil
 }
 
-func (re Bashy) ExecCommand(args []string, lines []string) {
-	filename := utils.WriteToFile("", lines)
+func (re *Bashy) ExecCommand(args []string, lines []string) {
+	filename := utils.TempFileName(re.Tmp, ".sh")
+	utils.WriteLinesToFile(filename, lines, 0777)
 
 	cmd := exec.Command("sh", "-c", filename)
 	cmd.Env = os.Environ()
@@ -134,7 +108,7 @@ func (re Bashy) ExecCommand(args []string, lines []string) {
 	fmt.Printf("%s\n", stdoutStderr)
 }
 
-func (re Bashy) scriptFiles(scriptPath string) []fs.FileInfo {
+func (re *Bashy) scriptFiles(scriptPath string) []fs.FileInfo {
 	result := []fs.FileInfo{}
 
 	files, err := ioutil.ReadDir(scriptPath)
@@ -179,8 +153,7 @@ func (re Bashy) scriptFiles(scriptPath string) []fs.FileInfo {
 	return result
 }
 
-func (re Bashy) loadConfigs(scriptPath string) []*Script {
-
+func (re *Bashy) loadConfigs(scriptPath string) []*Script {
 	files := re.scriptFiles(scriptPath)
 	/* loop over command folder */
 	configList := []*Script{}
@@ -193,7 +166,7 @@ func (re Bashy) loadConfigs(scriptPath string) []*Script {
 	return configList
 }
 
-func (re Bashy) loadConfigFromFiles(filename string) []*Script {
+func (re *Bashy) loadConfigFromFiles(filename string) []*Script {
 
 	configList := []*Script{}
 
@@ -246,7 +219,7 @@ func (re Bashy) loadConfigFromFiles(filename string) []*Script {
 	return configList
 }
 
-func (re Bashy) convertToCommands(configs []*Script) []*cli.Command {
+func (re *Bashy) convertToCommands(configs []*Script) []*cli.Command {
 	result := []*cli.Command{}
 	for _, config := range configs {
 		/* convert config to commands*/
@@ -255,50 +228,54 @@ func (re Bashy) convertToCommands(configs []*Script) []*cli.Command {
 		command.ArgsUsage = config.ArgUsage
 		command.Description = config.Description
 
-		// command.Action = func(c *cli.Context) error {
+		command.Action = func(c *cli.Context) error {
 
-		// 	args := []string{}
-		// 	for _, element := range c.FlagNames() {
-		// 		//fmt.Println(element)
-		// 		args = append(args, element+"="+c.String(element)+"")
-		// 	}
+			args := []string{}
+			for _, element := range c.FlagNames() {
+				//fmt.Println(element)
+				args = append(args, element+"="+c.String(element)+"")
+			}
 
-		// 	lines := []string{}
-		// 	// lines = append(lines, config.Cmds...)
-		// 	// lines = append(lines, config.Cmd)
-		// 	if(config.Script != ""){
-		// 		// script:=utils.ReadFileLines(config.Script);
-		// 		// lines = append(lines, script...)
-		// 	}
-		// 	re.ExecCommand(args, lines)
-		// 	return nil
-		// }
+			lines := []string{}
+			lines = append(lines, config.Cmds...)
+			lines = append(lines, config.Cmd)
+			if config.Script != "" {
+				script := utils.ReadFileLines(config.Script)
+				lines = append(lines, script...)
+			}
+			re.ExecCommand(args, lines)
+			return nil
+		}
 
-		// for _, element := range config.Params {
-		// 	param := new(cli.StringFlag)
-		// 	param.Name = element.Name
-		// 	param.Value = element.Default
-		// 	param.Usage = element.Desc
-		// 	param.Required = element.Required
+		for _, element := range config.Params {
+			param := new(cli.StringFlag)
+			param.Name = element.Name
+			param.Value = element.Default
+			param.Usage = element.Desc
+			param.Required = element.Required
 
-		// 	command.Flags = append(command.Flags, param)
+			command.Flags = append(command.Flags, param)
 
-		// }
+		}
 		result = append(result, command)
 	}
 	return result
 }
 
-func (re Bashy) loadCommands(home string) []*cli.Command {
+func (re *Bashy) loadCommands(home string) []*cli.Command {
 	configs := re.loadConfigs(home)
-
 	commands := re.convertToCommands(configs)
 	return commands
 }
 
-func (re Bashy) Run(args []string) {
+func (re *Bashy) Run(args []string) {
 	err := re.app.Run(args)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func (re *Bashy) Destroy() {
+	os.RemoveAll(re.Tmp)
+	os.Remove(re.Tmp)
 }

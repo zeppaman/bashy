@@ -58,7 +58,7 @@ fi
 source $shell_profile
 
 if [ -f ./bin/task ]; then
-    echo "task exists. intall skipped"
+    echo "task exists. install skipped"
 else 
     echo "task does not exist. installing"
     sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
@@ -68,5 +68,5 @@ fi
 
 bin/task  build-debug
 cp ./out/debug/bashy /usr/bin/bashy
-export PATH="$PATH:/home/.bashy/bin"
-echo 'export PATH="$PATH:/home/.bashy/bin' >>~/.profile
+export PATH="$PATH:/root/.bashy/bin"
+echo 'export PATH="$PATH:/root/.bashy/bin' >>~/.profile
