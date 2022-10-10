@@ -7,17 +7,17 @@ tasks:
     desc: Build with debug symbols for the current platform.
     summary: |
       Build with debug symbols for the current platform.
-    srcs:
+    cmds:
       - go build -gcflags "all=-N -l" -o ./out/debug/bashy ./src
 
     generates:
-      - out/debug/bashy
+      - ./out/debug/bashy
 
   build-linux:
     desc: Build for Linux.
     summary: |
       Build for Linux.
-    srcs:
+    cmds:
       -  go build -gcflags "all=-N -l" -o ./bin/linux/bashy ./src
 
     generates:
