@@ -69,8 +69,29 @@ func (re *Bashy) listScript(name string) {
 	}
 
 }
+
+func (re *Bashy) dumpSettings() {
+	fmt.Println("Dump Settings ")
+	fmt.Println("BinFolder: " + re.BinFolder)
+	fmt.Println("BinScriptTemplate: " + re.BinScriptTemplate)
+	fmt.Println("CacheFolder: " + re.CacheFolder)
+	fmt.Println("Home: " + re.Home)
+	fmt.Println("Instance: " + re.Instance)
+	fmt.Println("ScriptFolder: " + re.ScriptFolder)
+	fmt.Println("Tmp: " + re.Tmp)
+}
+
 func (re *Bashy) LoadInternalCommands() []*cli.Command {
 	return []*cli.Command{
+		{
+			Name:    "dumpsettings",
+			Aliases: []string{"d"},
+			Usage:   "dump settings for debug",
+			Action: func(c *cli.Context) error {
+				re.dumpSettings()
+				return nil
+			},
+		},
 		{
 			Name:    "repo",
 			Aliases: []string{"r"},
