@@ -12,6 +12,7 @@ tasks:
 
     generates:
       - ./out/debug/bashy
+      
 
   build-linux:
     desc: Build for Linux.

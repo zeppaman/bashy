@@ -7,9 +7,18 @@ You can simply have variable filled with values entered by the user by default, 
 
 # How to install
 There isnt any installer so far. You can install it by cloning the repo and running the install file.
+
+# Linux or WSL
 ```bash
 git clone <this repo url> bashy
 sh ./bashy/install.sh
+#rm -rf bashy optional
+```
+
+# Windows
+```
+git clone <this repo url> bashy
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; ./install.ps1
 #rm -rf bashy optional
 ```
 Despite that golang can produce multiplatform output and that this app could be improved to support multiple script engines (js,c#, etc..) and OS (windows, mac), at the moment the application is working only with linux and bash scripts.
