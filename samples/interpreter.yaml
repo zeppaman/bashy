@@ -1,0 +1,34 @@
+name: bash
+params:
+  - sh
+  - -c
+  - $filename
+os: linux
+installscript: 
+  - #!/bin/bash
+  - echo "nothing to do"
+  - exit 0
+variabletemplate: $name='$value'
+---
+name: node
+params:
+  - node
+  - $filename
+os: linux
+installscript:
+  - #!/bin/bash
+  - echo "installing dependencies (node)"
+  - '[[ "$(command -v apt)" ]] || { apt install nodejs -y; }'
+  - exit 0
+variabletemplate: var $name="$value";
+---
+name: node2
+params:
+  - node
+  - -c
+  - $filename
+os: windows
+installscript:
+  - 
+  - echo "installing node (with choco, run in elevated mode)"
+variabletemplate: xxx

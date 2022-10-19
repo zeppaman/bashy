@@ -7,8 +7,10 @@ import (
 	"encoding/hex"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	// "os/exec"
 	// "path/filepath"
@@ -22,6 +24,8 @@ import (
 	"log"
 	"net/http"
 	"strings"
+
+	"gopkg.in/yaml.v2"
 )
 
 //go:embed templates
@@ -29,6 +33,7 @@ var tpls embed.FS
 
 func Transform(templateName string, data interface{}) string {
 	// Create bin entry
+
 	t, err := template.ParseFS(tpls, "templates/*")
 	if err != nil {
 		panic(err)
@@ -90,6 +95,7 @@ func WriteLinesToFile(filename string, lines []string, mode os.FileMode) string 
 	}
 
 	for _, line := range lines {
+		fmt.Println(line)
 		file.WriteString(line + "\n")
 	}
 	file.Close()
@@ -186,4 +192,51 @@ func RemoveAll(pattern string) {
 			panic(err)
 		}
 	}
+}
+
+func SerializeToFile(path string, object interface{}) error {
+	data, err := yaml.Marshal(&object)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	err = ioutil.WriteFile(path, data, 0)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+func CurrentOS() string {
+	os := runtime.GOOS
+	switch os {
+	case "windows":
+		return "windows"
+	case "darwin":
+		return "mac"
+	case "linux":
+		return "linux"
+	}
+	return os
+}
+
+
+
+func Contains[T comparable](s []T, str T) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
+}
+func RemoveFromSlice[T comparable](l []T, item T) []T {
+	for i, other := range l {
+		if other == item {
+			return append(l[:i], l[i+1:]...)
+		}
+	}
+	return l
 }

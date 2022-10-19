@@ -1,0 +1,15 @@
+name: js
+description: the command description using nodejs
+argsusage: help text
+cmd: console.log("single command")
+cmds:
+    - console.log("Name " + name)
+    - console.log("Surname "+ surname)
+    - console.log(name+" -"+surname)
+params:
+  - name: "name"
+    desc: "enter your name"
+  - name: "surname"
+    desc: "enter your surname"
+interpreter: node
+---
