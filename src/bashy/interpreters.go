@@ -84,7 +84,7 @@ func (re *Bashy) listInterpreters(name string) {
 func (re *Bashy) loadInterpreters() {
 	files := re.getInterpretersFileNames()
 	for _, file := range files {
-		fmt.Println("loading from " + file)
+		//fmt.Println("loading from " + file)
 		interpreters := re.loadInterpretersFromFile(file)
 		re.Interpreters = append(re.Interpreters, interpreters...)
 	}

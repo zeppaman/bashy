@@ -104,7 +104,7 @@ func (re *Bashy) ExecCommand(interpreter *Interpreter, params map[string]string,
 	filename := utils.TempFileName(re.Tmp, ".sh")
 	linesToWrite := []string{}
 	for name, value := range params {
-		fmt.Println("variable add" + interpreter.Variabletemplate)
+		//fmt.Println("variable add" + interpreter.Variabletemplate)
 		line := strings.ReplaceAll(interpreter.Variabletemplate, "$name", name)
 		line = strings.ReplaceAll(line, "$value", value)
 		linesToWrite = append(linesToWrite, line)
@@ -112,13 +112,13 @@ func (re *Bashy) ExecCommand(interpreter *Interpreter, params map[string]string,
 	linesToWrite = append(linesToWrite, lines...)
 
 	utils.WriteLinesToFile(filename, linesToWrite, 0777)
-	fmt.Printf("use " + interpreter.Name + " with file" + filename)
+	//fmt.Printf("use " + interpreter.Name + " with file" + filename)
 
 	commandArgs := []string{}
 	for i, arg := range interpreter.Params {
 		if i > 0 {
 			arg = strings.ReplaceAll(arg, "$filename", filename)
-			fmt.Printf("arg:" + arg)
+			//fmt.Printf("arg:" + arg)
 			commandArgs = append(commandArgs, arg)
 		}
 	}
@@ -244,7 +244,7 @@ func (re *Bashy) convertToCommands(configs []*Script) []*cli.Command {
 				script := utils.ReadFileLines(config.Script)
 				lines = append(lines, script...)
 			}
-			fmt.Println("Prepare flags ")
+			//fmt.Println("Prepare flags ")
 			params := make(map[string]string)
 			names := c.FlagNames()
 			for _, flag := range config.Params {

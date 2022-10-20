@@ -95,7 +95,7 @@ func WriteLinesToFile(filename string, lines []string, mode os.FileMode) string 
 	}
 
 	for _, line := range lines {
-		fmt.Println(line)
+		//fmt.Println(line)
 		file.WriteString(line + "\n")
 	}
 	file.Close()
