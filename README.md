@@ -159,7 +159,7 @@ script: https://gist.githubusercontent.com/zeppaman/bbdfbac1304f88df1b905692e42f
 ```
 
 **Local relative path**
-The path is relative to the yaml location
+The path is relative to the same location
 ```yaml
 script: ./test-bashy.sh
 ```
@@ -168,7 +168,56 @@ script: ./test-bashy.sh
 ```yaml
 script: /test-bashy.sh
 ```
-Note: absolute path are not changed during import/execution process
+Note: absolute paths are not changed during the import/execution process
+
+# Extend Bashy 
+The engine of bashy support any kind of script interpreter but it is shipped with sh for Linux and cmd for windows.
+To add a new one just create a file like the following (this piece of code add the nodejs interpreter):
+```yaml
+name: node
+params:
+  - node
+  - $filename
+os: linux
+installscript:
+  - #!/bin/bash
+  - echo "installing dependencies (node)"
+  - '[[ "$(command -v apt)" ]] || { apt install nodejs -y; }'
+  - exit 0
+variabletemplate: var $name="$value";
+```
+Important fields are:
+**name** the name of the interpreter. Into script YAML you will set the interpreter parameter to match this.
+- **params** a list of parameters to run the script. The placeholder `$filename` will be replaced with the temporary path of the script that will be generated during the script run. The list in the example will be transformed into `node /`path/to/file`
+- **os** the name of the os where the interpreter can be interpreted. If you have an interpreter that can be used in two different OS, you have to duplicate it
+- **installscript** list of script steps for installing the interpreter. In the example above, it checks if apt is available, then installs node
+- **variabletemplate** the template for adding variables on top of the script, `$name`` and `$value` are placeholders that will hold the param name and value as defined in the command YAML.
+
+The installation of the interpreter can be done by using the `interpreter` command, like in the following example:
+
+```bash
+bash interpreter add samples/interpreter.yml
+```
+
+you can check the list of the loaded interpreters by typing:
+Once the interpreter is installed, you can use it by adding the field `interpreter:
+
+```yaml
+name: Name
+description: the command description
+argsusage: help text
+cmd: ...
+interpreter: node
+```
+
+## Default interpreters
+
+Bashy ships a set of default interpreters based on the OS. The list is the following.
+
+| OS  | Name | Default |
+| ------------- | ------------- | ------------- |
+| LINUX | sh  | YES |
+| WINDOWS  | cmd  | YES |
 
 # Change default home
 
@@ -178,6 +227,6 @@ BASHY_HOME=samples bashy
 
 # Debug
 ```bash
-BASHY_HOME=samples go run ./src/main.go 
-BASHY_HOME=samples  BASHY_EXTRA=samples/home go run ./src/main.go 
+BASHY_HOME=tmp/home go run ./src/main.go 
+BASHY_HOME=tmp/home  BASHY_EXTRA=samples/home go run ./src/main.go 
 ```
