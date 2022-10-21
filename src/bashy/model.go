@@ -15,5 +15,15 @@ type Script struct {
 	ArgUsage    string
 	Params      []Parameter
 	Description string
-	Script string
+	Script      string
+	Interpreter string
+}
+
+type Interpreter struct {
+	Name             string
+	Params           []string
+	Installscript    []string
+	Os               string
+	Interpreter      string
+	Variabletemplate string
 }

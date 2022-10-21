@@ -25,12 +25,14 @@ type Bashy struct {
 	Home              string
 	app               cli.App
 	scripts           []*Script
+	Interpreters      []*Interpreter
 	ScriptFolder      string
 	CacheFolder       string
 	BinFolder         string
 	BinScriptTemplate string
 	Tmp               string
 	Instance          string
+	InterpreterFolder string
 }
 
 func (re *Bashy) Init() error {
@@ -56,6 +58,7 @@ func (re *Bashy) Init() error {
 	re.CacheFolder = filepath.Join(re.Home, "cache")
 	re.BinFolder = filepath.Join(re.Home, "bin")
 	re.Tmp = filepath.Join(re.Home, "tmp", re.Instance)
+	re.InterpreterFolder = filepath.Join(re.Home, "interpreters")
 	err := os.MkdirAll(re.ScriptFolder, os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
@@ -75,11 +78,18 @@ func (re *Bashy) Init() error {
 		log.Fatal(err)
 	}
 
+	err = os.MkdirAll(re.InterpreterFolder, os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	cmds := re.loadCommands(re.ScriptFolder)
 	cmds = append(cmds, re.LoadInternalCommands()...)
 	if len(cmds) == 0 {
 		return errors.New("no commands found")
 	}
+
+	re.loadInterpreters()
 
 	re.app = cli.App{
 		Name:        "Bashy",
@@ -90,16 +100,34 @@ func (re *Bashy) Init() error {
 	return nil
 }
 
-func (re *Bashy) ExecCommand(args []string, lines []string) {
+func (re *Bashy) ExecCommand(interpreter *Interpreter, params map[string]string, lines []string) {
 	filename := utils.TempFileName(re.Tmp, ".sh")
-	utils.WriteLinesToFile(filename, lines, 0777)
+	linesToWrite := []string{}
+	for name, value := range params {
+		//fmt.Println("variable add" + interpreter.Variabletemplate)
+		line := strings.ReplaceAll(interpreter.Variabletemplate, "$name", name)
+		line = strings.ReplaceAll(line, "$value", value)
+		linesToWrite = append(linesToWrite, line)
+	}
+	linesToWrite = append(linesToWrite, lines...)
 
-	cmd := exec.Command("sh", "-c", filename)
+	utils.WriteLinesToFile(filename, linesToWrite, 0777)
+	//fmt.Printf("use " + interpreter.Name + " with file" + filename)
+
+	commandArgs := []string{}
+	for i, arg := range interpreter.Params {
+		if i > 0 {
+			arg = strings.ReplaceAll(arg, "$filename", filename)
+			//fmt.Printf("arg:" + arg)
+			commandArgs = append(commandArgs, arg)
+		}
+	}
+	cmd := exec.Command(interpreter.Params[0], commandArgs...)
 	cmd.Env = os.Environ()
 
-	for _, arg := range args {
-		cmd.Env = append(cmd.Env, arg)
-	}
+	// for _, arg := range args {
+	// 	cmd.Env = append(cmd.Env, arg)
+	// }
 
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
@@ -168,6 +196,7 @@ func (re *Bashy) loadConfigs(scriptPath string) []*Script {
 
 func (re *Bashy) loadConfigFromFiles(filename string) []*Script {
 
+	//TODO: Works only with --- ending. Fix it
 	configList := []*Script{}
 
 	f, err := os.Open(filename)
@@ -191,29 +220,7 @@ func (re *Bashy) loadConfigFromFiles(filename string) []*Script {
 		if err != nil {
 			panic(err)
 		}
-		//config.Name = config.Name + "_" + strconv.Itoa(i)
 
-		// if config.Script != "" {
-		// 	if strings.HasPrefix(config.Script, "/") {
-		// 		//absolute local path, unchanged
-		// 	} else if strings.HasPrefix(config.Script, "http://") || strings.HasPrefix(config.Script, "https://") {
-
-		// 		//download it and chache
-		// 		cacheScript := filepath.Join(os.TempDir(), config.Name+".sh")
-
-		// 		if !utils.Exists(cacheScript) {
-		// 			fmt.Println("downloading..")
-		// 			utils.DownloadFile(cacheScript, config.Script)
-		// 		}
-
-		// 		config.Script = cacheScript
-
-		// 	} else {
-		// 		//local relative path
-		// 		parent := filepath.Dir(filename)
-		// 		config.Script = filepath.Join(parent, config.Script)
-		// 	}
-		// }
 		configList = append(configList, config)
 	}
 	return configList
@@ -230,12 +237,6 @@ func (re *Bashy) convertToCommands(configs []*Script) []*cli.Command {
 
 		command.Action = func(c *cli.Context) error {
 
-			args := []string{}
-			for _, element := range c.FlagNames() {
-				//fmt.Println(element)
-				args = append(args, element+"="+c.String(element)+"")
-			}
-
 			lines := []string{}
 			lines = append(lines, config.Cmds...)
 			lines = append(lines, config.Cmd)
@@ -243,7 +244,20 @@ func (re *Bashy) convertToCommands(configs []*Script) []*cli.Command {
 				script := utils.ReadFileLines(config.Script)
 				lines = append(lines, script...)
 			}
-			re.ExecCommand(args, lines)
+			//fmt.Println("Prepare flags ")
+			params := make(map[string]string)
+			names := c.FlagNames()
+			for _, flag := range config.Params {
+				fmt.Println(" - " + flag.Name)
+				if utils.Contains(names, flag.Name) {
+					params[flag.Name] = c.String(flag.Name)
+				} else {
+					params[flag.Name] = flag.Default
+				}
+			}
+			installInterpreter := re.GetInterpreterForCurrentOS(config.Interpreter)
+
+			re.ExecCommand(installInterpreter, params, lines)
 			return nil
 		}
 
@@ -278,4 +292,82 @@ func (re *Bashy) Run(args []string) {
 func (re *Bashy) Destroy() {
 	os.RemoveAll(re.Tmp)
 	os.Remove(re.Tmp)
+}
+
+func (re *Bashy) LoadInternalCommands() []*cli.Command {
+	return []*cli.Command{
+		{
+			Name:    "dumpsettings",
+			Aliases: []string{"d"},
+			Usage:   "dump settings for debug",
+			Action: func(c *cli.Context) error {
+				re.dumpSettings()
+				return nil
+			},
+		},
+		{
+			Name:    "repo",
+			Aliases: []string{"r"},
+			Usage:   "manage local scripts",
+
+			Subcommands: []*cli.Command{
+				{
+					Name:  "add",
+					Usage: "add a new template",
+					Action: func(c *cli.Context) error {
+						re.addScript(c.Args().Get(0))
+						return nil
+					},
+				},
+				{
+					Name:  "remove",
+					Usage: "remove an existing template",
+					Action: func(c *cli.Context) error {
+						re.removeScript(c.Args().Get(0))
+						return nil
+					},
+				},
+				{
+					Name:  "list",
+					Usage: "list installed scripts",
+					Action: func(c *cli.Context) error {
+						re.listScript(c.Args().Get(0))
+						return nil
+					},
+				},
+			},
+		},
+		{
+			Name:    "interpreter",
+			Aliases: []string{"i"},
+			Usage:   "manage local interpreters",
+
+			Subcommands: []*cli.Command{
+				{
+					Name:  "add",
+					Usage: "add a new interpreter",
+					Action: func(c *cli.Context) error {
+						re.addInterpreter(c.Args().Get(0))
+						return nil
+					},
+				},
+				{
+					Name:  "remove",
+					Usage: "remove an existing interpreter",
+					Action: func(c *cli.Context) error {
+						re.removeInterpreter(c.Args().Get(0))
+						return nil
+					},
+				},
+				{
+					Name:  "list",
+					Usage: "list installed interpreter",
+					Action: func(c *cli.Context) error {
+						re.listInterpreters(c.Args().Get(0))
+						return nil
+					},
+				},
+			},
+		},
+	}
 }
