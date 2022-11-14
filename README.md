@@ -11,9 +11,12 @@ There isnt any installer so far. You can install it by cloning the repo and runn
 # Linux or WSL
 ```bash
 git clone <this repo url> bashy
-sh ./bashy/install.sh
-#rm -rf bashy optional
+cd bashy
+bash ./install.sh
 ```
+installation notes:
+- this compile bashy form source, so you can delete the folder at the end
+- the tool download and install go if not present. If present, nothing is touched but it have to be updated manually to the 1.19 version.
 
 # Windows
 ```
