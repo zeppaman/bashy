@@ -24,7 +24,7 @@ jobs:
       run: sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
       shell: bash
 
-     - name: Tag
+    - name: Tag
       run: git tag latest && git push --tags
       shell: bash
       
