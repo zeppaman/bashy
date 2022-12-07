@@ -46,7 +46,6 @@ jobs:
         CHANGELOG: ${{ steps.tag_version.outputs.changelog }}
       shell: bash
       run: |
-        NEW_TAG=date=v$(date '+%Y-%m-%d.%H:%M:%S')
         TITLE='Latest'
         BODY='Test release'
         go install github.com/tcnksm/ghr 
