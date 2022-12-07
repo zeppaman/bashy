@@ -1,0 +1,15 @@
+{
+  "name": "bashy",
+  "version": "1.0.0",
+  "description": "Push scripts over their limits",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zeppaman/bashy.git"
+  },
+  "author": "zeppaman",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zeppaman/bashy/issues"
+  },
+  "homepage": "https://github.com/zeppaman/bashy#readme"
+}
