@@ -14,17 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: "Automated Version Bump"
-      id: version-bump
-      uses: "phips28/gh-action-bump-version@master"
-      with:
-        tag-prefix: ''
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: 'Output Step'
-      env:
-        NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
-      run: echo "new tag $NEW_TAG"
+    
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
@@ -46,6 +36,7 @@ jobs:
         NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
       shell: bash
       run: |
+        NEW_TAG=date=v$(date '+%Y-%m-%d.%H:%M:%S')
         TITLE='Latest'
         BODY='Test release'
         go install github.com/tcnksm/ghr 
