@@ -25,7 +25,7 @@ jobs:
       shell: bash
 
     - name: Tag
-      run: git tag latest && git push --tags
+      run: git tag latest -fa && git push --tags
       shell: bash
       
     - name: Build for linux
