@@ -19,19 +19,25 @@ tasks:
     summary: |
       Build for Linux.
     cmds:
-      -  go build    --ldflags '-extldflags "-static"' -o ./out/linux/bashy ./src
+      -  env GOOS=linux go build    --ldflags '-extldflags "-static"' -o ./out/bashy.linux ./src
+    generates:
+      - out/bashy.linux
+  build-windows:
+    desc: Build for Linux.
+    summary: |
+      Build for Linux.
+    cmds:
+      -  env GOOS=windows go build     -o ./out/bashy.windows ./src
 
     generates:
-      - out/linux/bashy
-    vars:
-      DOCKER_IMAGE: frontend_image
+      - out/bashy.windows
 
   clean:
     desc: Clean temp artifacts.
     summary: |
       Clean temp artifacts.
     srcs:
-      - go run ./scripts/clean
+      - rm -rf out
 
   run:
     desc: Run app on current platform.
