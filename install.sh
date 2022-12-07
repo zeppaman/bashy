@@ -70,3 +70,8 @@ bin/task  build-debug
 cp ./out/debug/bashy /usr/bin/bashy
 export PATH="$PATH:/root/.bashy/bin"
 echo 'export PATH="$PATH:/root/.bashy/bin"' >>~/.profile
+
+#wget https://github.com/zeppaman/bashy/releases/download/v1.0.1/bashy
+
+#curl -LO https://github.com/zeppaman/bashy/releases/download/v1.0.1/bashy &&  install  -m 0755 ./bashy /usr/bin/bashy && rm ./bashy && echo 'export PATH="$PATH:$HOME/.bashy/bin"'>>~/.bashrc &&  echo 'export PATH="$PATH:$HOME/.bashy/bin"'>>~/.profile &&  echo 'export PATH="$PATH:$HOME/.bashy/bin"'>>/etc/environment && export PATH="$PATH:$HOME/.bashy/bin"
+#sudo sh -c 'curl -LO https://github.com/zeppaman/bashy/releases/download/v1.0.1/bashy &&  install  -m 0755 bashy /usr/bin/bashy && rm -rf bashy'
