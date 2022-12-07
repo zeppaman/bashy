@@ -23,6 +23,13 @@ jobs:
       env:
         NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}
       run: echo "new tag $NEW_TAG"
+    - name: 'Move latest'
+      shell: bash
+      run: |
+        git tag -d latest
+        git push origin :refs/tags/latest
+        git tag -f latest
+        git push origin latest
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
