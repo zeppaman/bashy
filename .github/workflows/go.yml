@@ -41,7 +41,9 @@ jobs:
     - name: Publish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
+        NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}
+        NAME: Release ${{ steps.tag_version.outputs.new_tag }}
+        CHANGELOG: ${{ steps.tag_version.outputs.changelog }}
       shell: bash
       run: |
         NEW_TAG=date=v$(date '+%Y-%m-%d.%H:%M:%S')
@@ -49,5 +51,5 @@ jobs:
         BODY='Test release'
         go install github.com/tcnksm/ghr 
         ghr -n="$TITLE" -b="$BODY" -delete  latest ./out/
-        ghr -n="$TITLE" -b="$BODY" -delete  $NEW_TAG ./out/
+        ghr -n="$NAME" -b="$CHANGELOG" -delete  $NEW_TAG ./out/
 
