@@ -24,34 +24,15 @@ jobs:
       run: sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
       shell: bash
 
+     - name: Tag
+      run: git tag latest && git push --tags
+      shell: bash
+      
     - name: Build for linux
       run: bin/task build-linux
       shell: bash
-      
-    - name: Create Release
-      id: create_release
-      uses: actions/update-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+    - uses: actions-ecosystem/action-push-tag@v1
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        body: |
-            Changes in this Release
-            - First Change
-            - Second Change
-        draft: false
-        prerelease: false
-        
-    - name: Upload Release Asset
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: ./out/linux/bashy
-        asset_name: bashy.linux
-        #asset_content_type: application/zip
-
+        tag: ${{ steps.bump-semver.outputs.new_version }}
+        message: '${{ steps.bump-semver.outputs.new_version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}'
 
