@@ -42,8 +42,6 @@ jobs:
             - Second Change
         draft: false
         prerelease: false
-        make_latest: true
-        generate_release_notes: true
         
     - name: Upload Release Asset
       id: upload-release-asset 
