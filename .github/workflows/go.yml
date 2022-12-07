@@ -27,14 +27,20 @@ jobs:
     - name: Build for linux
       run: bin/task build-linux
       shell: bash
-    - name: Upload Release Asset
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #  - name: Upload Release Asset
+  #    id: upload-release-asset 
+  #    uses: actions/upload-release-asset@v1
+  #    env:
+  #      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #    with:
+  #      upload_url: https://github.com/zeppaman/bashy/releases/tag/latest # ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+  #      asset_path: ./out/linux/bashy
+  #      asset_name: bashy.linux
+  #      asset_content_type: application/octet-stream
+    - name: Upload Assets to Release with a wildcard
+      uses: csexton/release-asset-action@v2
       with:
-        upload_url: https://github.com/zeppaman/bashy/releases/tag/latest # ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: ./out/linux/bashy
-        asset_name: bashy.linux
-        asset_content_type: application/octet-stream
-
+         files: |
+          ./out/linux/bashy
+         github-token: ${{ secrets.GITHUB_TOKEN }}
+         release-url: https://github.com/zeppaman/bashy/releases/tag/latest 
