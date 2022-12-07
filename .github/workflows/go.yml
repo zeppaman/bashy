@@ -26,6 +26,7 @@ jobs:
     - name: 'Move latest'
       shell: bash
       run: |
+        echo "movign tag"
         git tag -d latest
         git push origin :refs/tags/latest
         git tag -f latest
