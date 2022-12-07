@@ -23,15 +23,19 @@ jobs:
       env:
         NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}
       run: echo "new tag $NEW_TAG"
-    - name: 'Move latest'
-      shell: bash
-      run: |
-        echo "movign tag"
-        git tag -d latest
-        git push origin :refs/tags/latest
-        git tag -f latest
-        git push origin latest
+    - uses: ClementTsang/delete-tag-and-release@v0.3.1
+      with:
+        delete_release: false
+        tag_name: latets
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
+    - uses: rickstaa/action-create-tag@v1
+      with:
+        tag: "latest"
+        message: "Latest release"
+        no_verify_tag: true
+        force_push_tag: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Set up Go
