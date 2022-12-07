@@ -26,6 +26,8 @@ jobs:
 
     - name: Build for linux
       run: bin/task build-linux
+      shell: bash
+      
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -34,10 +36,10 @@ jobs:
       with:
         tag_name: ${{ github.ref }}
         release_name: Release ${{ github.ref }}
-      body: |
-          Changes in this Release
-          - First Change
-          - Second Change
+        body: |
+            Changes in this Release
+            - First Change
+            - Second Change
         draft: false
         prerelease: false
         make_latest: true
