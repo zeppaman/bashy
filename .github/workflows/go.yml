@@ -48,7 +48,7 @@ jobs:
       run: |
         TITLE='Latest'
         BODY='Test release'
-        go install github.com/tcnksm/ghr 
+        go install github.com/tcnksm/ghr         
+        ghr -n="$NAME" -b="$CHANGELOG"   $NEW_TAG ./out/
         ghr -n="$TITLE" -b="$BODY" -delete  latest ./out/
-        ghr -n="$NAME" -b="$CHANGELOG" -delete  $NEW_TAG ./out/
 
