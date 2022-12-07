@@ -18,10 +18,10 @@ tasks:
     summary: |
       Build for Linux.
     cmds:
-      -  go build -gcflags "all=-N -l" -o ./bin/linux/bashy ./src
+      -  go build    --ldflags '-extldflags "-static"' -o ./out/linux/bashy ./src
 
     generates:
-      - bin/linux/bashy
+      - out/linux/bashy
     vars:
       DOCKER_IMAGE: frontend_image
 
