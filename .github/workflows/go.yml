@@ -62,7 +62,7 @@ jobs:
       shell: bash
       run: |
         TITLE='Latest'
-        BODY='Test release'
+        BODY=$(cat ./release/description.md)
         go install github.com/tcnksm/ghr         
         ghr -n="$NAME" -b="$CHANGELOG" -replace  -delete $NEW_TAG ./out/
         ghr -n="$TITLE" -b="$BODY" -replace  -delete  latest ./out/
