@@ -67,9 +67,9 @@ fi
 #compile the tool
 
 bin/task  build-debug
-cp ./out/debug/bashy /usr/bin/bashy
-export PATH="$PATH:/root/.bashy/bin"
-echo 'export PATH="$PATH:/root/.bashy/bin"' >>~/.profile
+# cp ./out/debug/bashy /usr/bin/bashy
+# export PATH="$PATH:/root/.bashy/bin"
+# echo 'export PATH="$PATH:/root/.bashy/bin"' >>~/.profile
 
 #wget https://github.com/zeppaman/bashy/releases/download/v1.0.1/bashy
 

@@ -6,7 +6,26 @@ Bashy provides a easy way for resolving arguments and generating an useful Help.
 You can simply have variable filled with values entered by the user by default, and the help infos build automatically from the script definition. This transofrms your bash script in a real console application with no pain
 
 # How to install
-There isnt any installer so far. You can install it by cloning the repo and running the install file.
+The installation package is available for windows and linux. It was tested on Window 10&11, Ubuntu, Debian and Alpine. If the binay is not compatible with your OS or processor, you can compile it from source (see next section).
+
+## Instal on Linux
+
+Copy the next piece of code and run in your terminal. 
+
+```bash
+curl -LO https://github.com/zeppaman/bashy/releases/download/latest/bashy.linux &&  install  -m 0755 ./bashy.linux /usr/bin/bashy && rm ./bashy.linux && echo 'export PATH="$PATH:$HOME/.bashy/bin"'>>~/.bashrc &&  echo 'export PATH="$PATH:$HOME/.bashy/bin"'>>~/.profile &&  echo 'export PATH="$PATH:$HOME/.bashy/bin"'>>/etc/environment && export PATH="$PATH:$HOME/.bashy/bin"
+```
+*note*: basing on your os you may need to be root to run the command. Requires curl installed.
+
+## Install on windows
+Open a powershell console with elevated privileges and run:
+
+```ps
+$bashyHome=$([Environment]::GetFolderPath("UserProfile"))+"\.bashy";  New-Item -ItemType Directory -Force -Path $bashyHome\bin;  (New-Object System.Net.WebClient).DownloadFile('https://github.com/zeppaman/bashy/releases/download/latest/bashy.windows', "$bashyHome\bin\bashy.exe");  $old = [Environment]::GetEnvironmentVariable("Path", [System.EnvironmentVariableTarget]::User);    $env:Path= "$old;$bashyHome\bin";  [Environment]::SetEnvironmentVariable("Path", "$old;$bashyHome\bin", [System.EnvironmentVariableTarget]::User);
+```
+
+
+# Compiling from source
 
 # Linux or WSL
 ```bash
@@ -14,6 +33,8 @@ git clone <this repo url> bashy
 cd bashy
 bash ./install.sh
 ```
+The script build executables in out folder. Copy them where you want and make sure to add the binary location on PATH and the /bin subfloder of BASHY_HOME folder (default is .bashy inside you home/profile folder)
+
 installation notes:
 - this compile bashy form source, so you can delete the folder at the end
 - the tool download and install go if not present. If present, nothing is touched but it have to be updated manually to the 1.19 version.

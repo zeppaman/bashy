@@ -39,7 +39,7 @@ Write-Host $bashyHome
 New-Item -ItemType Directory -Force -Path $bashyHome\bin | Select-Object "bashy home created"
 Copy-Item ./out/debug/bashy -Destination $bashyHome\bin\bashy.exe -Recurse
 
-#TODO: DO THE SAME FOR[System.EnvironmentVariableTarget]::Machine
+
 
 $old = [Environment]::GetEnvironmentVariable("Path", [System.EnvironmentVariableTarget]::User)
 if ($old -like "*$bashyHome\bin*") { 
@@ -61,7 +61,3 @@ if ($old -like "*$bashyHome\bin*") {
     $new  =  "$old;$bashyHome\bashy.exe"
     [Environment]::SetEnvironmentVariable("Path",  $new, [System.EnvironmentVariableTarget]::User)
   }
-
-  
-
-
