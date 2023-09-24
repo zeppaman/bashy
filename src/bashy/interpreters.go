@@ -171,7 +171,7 @@ func (re *Bashy) GetDefaultInterpreters() []*Interpreter {
 		interpreters = append(interpreters, &Interpreter{
 			Name:   "bat",
 			Os:     "windows",
-			Params: []string{"RUN", "$filename"},
+			Params: []string{"cmd", "/c", "$filename"},
 		})
 	} else if "linux" == utils.CurrentOS() {
 
