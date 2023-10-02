@@ -1,6 +1,7 @@
 package bashy
 
 import (
+	logger "bashy/src/logger"
 	"bashy/src/utils"
 	"errors"
 	"os"
@@ -15,7 +16,6 @@ import (
 	"io"
 	"io/fs"
 	"io/ioutil"
-	"log"
 
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v2"
@@ -45,11 +45,11 @@ func (re *Bashy) Init() error {
 
 	re.Home, _ = filepath.Abs(re.Home)
 
-	if utils.DirectoryExists(re.Home) == false {
-		fmt.Println("creating missing folder" + re.Home)
+	if !utils.DirectoryExists(re.Home) {
+		logger.BgreenPrintln("creating missing folder" + re.Home)
 		err := os.MkdirAll(re.Home, os.ModePerm)
 		if err != nil {
-			log.Fatal(err)
+			logger.Log("fatal", logger.JsonEncode(err))
 		}
 	}
 
@@ -61,26 +61,26 @@ func (re *Bashy) Init() error {
 	re.InterpreterFolder = filepath.Join(re.Home, "interpreters")
 	err := os.MkdirAll(re.ScriptFolder, os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
+		logger.Log("fatal", logger.JsonEncode(err))
 	}
 	err = os.MkdirAll(re.CacheFolder, os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
+		logger.Log("fatal", logger.JsonEncode(err))
 	}
 
 	err = os.MkdirAll(re.BinFolder, os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
+		logger.Log("fatal", logger.JsonEncode(err))
 	}
 
 	err = os.MkdirAll(re.Tmp, os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
+		logger.Log("fatal", logger.JsonEncode(err))
 	}
 
 	err = os.MkdirAll(re.InterpreterFolder, os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
+		logger.Log("fatal", logger.JsonEncode(err))
 	}
 
 	cmds := re.loadCommands(re.ScriptFolder)
@@ -90,7 +90,6 @@ func (re *Bashy) Init() error {
 	}
 
 	re.loadInterpreters()
-
 	re.app = cli.App{
 		Name:        "Bashy",
 		Commands:    cmds,
@@ -119,6 +118,9 @@ func (re *Bashy) ExecCommand(interpreter *Interpreter, params map[string]string,
 		if i > 0 {
 			arg = strings.ReplaceAll(arg, "$filename", filename)
 			//fmt.Printf("arg:" + arg)
+			if logger.IsDebug() {
+				logger.Log("info", "arg:"+arg)
+			}
 			commandArgs = append(commandArgs, arg)
 		}
 	}
@@ -131,7 +133,7 @@ func (re *Bashy) ExecCommand(interpreter *Interpreter, params map[string]string,
 
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatal(err)
+		logger.Log("fatal", logger.JsonEncode(err))
 	}
 	fmt.Printf("%s\n", stdoutStderr)
 }
@@ -141,7 +143,8 @@ func (re *Bashy) scriptFiles(scriptPath string) []fs.FileInfo {
 
 	files, err := ioutil.ReadDir(scriptPath)
 	if err != nil {
-		fmt.Println(err)
+		//fmt.Println(err)
+		logger.Log("error", logger.JsonEncode(err))
 	}
 	manualfiles := os.Getenv("BASHY_FILES")
 	if len(manualfiles) > 0 {
@@ -218,6 +221,7 @@ func (re *Bashy) loadConfigFromFiles(filename string) []*Script {
 			break
 		}
 		if err != nil {
+			logger.Log("fatal", logger.JsonEncode(err))
 			panic(err)
 		}
 
@@ -248,7 +252,7 @@ func (re *Bashy) convertToCommands(configs []*Script) []*cli.Command {
 			params := make(map[string]string)
 			names := c.FlagNames()
 			for _, flag := range config.Params {
-				fmt.Println(" - " + flag.Name)
+				logger.BcyanPrintln(" - "+flag.Name, "bcyan")
 				if utils.Contains(names, flag.Name) {
 					params[flag.Name] = c.String(flag.Name)
 				} else {
@@ -285,7 +289,7 @@ func (re *Bashy) loadCommands(home string) []*cli.Command {
 func (re *Bashy) Run(args []string) {
 	err := re.app.Run(args)
 	if err != nil {
-		log.Fatal(err)
+		logger.Log("fatal", logger.JsonEncode(err))
 	}
 }
 

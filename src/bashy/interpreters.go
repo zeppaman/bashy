@@ -1,6 +1,7 @@
 package bashy
 
 import (
+	logger "bashy/src/logger"
 	"bashy/src/utils"
 	"errors"
 	"fmt"
@@ -22,7 +23,7 @@ func (re *Bashy) removeInterpreter(name string) {
 
 }
 func (re *Bashy) addInterpreter(path string) {
-	fmt.Println("Add Interpreter " + path + " to " + re.InterpreterFolder)
+	logger.BgreenPrintln("Add Interpreter " + path + " to " + re.InterpreterFolder)
 
 	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
 		cacheScript := filepath.Join(re.Tmp, utils.GetMD5Hash(path)+".yml")
@@ -36,12 +37,15 @@ func (re *Bashy) addInterpreter(path string) {
 	for _, interpreter := range interpretersRead {
 		if interpreter.Os == utils.CurrentOS() {
 			interpretersToAdd = append(interpretersToAdd, interpreter)
-			fmt.Println(interpreter.Name + " available for " + interpreter.Os)
+			logger.GreenPrintln("info", interpreter.Name+" available for "+interpreter.Os)
 		} else {
-			fmt.Println("Skipped " + interpreter.Os + " of " + interpreter.Name)
+			logger.GreenPrintln("info", "Skipped "+interpreter.Os+" of "+interpreter.Name)
 		}
 	}
 
+	if logger.IsDebug() {
+		logger.Log("info", "interpretersToAdd: "+fmt.Sprintf("%v", interpretersToAdd))
+	}
 	//remove interpreters with the same name for replacing and append
 	tmp := []*Interpreter{}
 	for _, interpreter := range re.Interpreters {
@@ -75,9 +79,9 @@ func (re *Bashy) saveInterpreters() {
 	}
 }
 func (re *Bashy) listInterpreters(name string) {
-	fmt.Println("Loaded Interpreters form: " + re.InterpreterFolder)
+	logger.GreenPrintln("info", "Loaded Interpreters form: "+re.InterpreterFolder)
 	for _, Interpreter := range re.Interpreters {
-		fmt.Println(Interpreter.Name)
+		logger.Log("info", Interpreter.Name)
 	}
 
 }
@@ -95,13 +99,14 @@ func (re *Bashy) getInterpretersFileNames() []string {
 
 	files, err := ioutil.ReadDir(re.InterpreterFolder)
 	if err != nil {
-		fmt.Println(err)
+		logger.Log("error", err.Error())
+		logger.Log("error", logger.JsonEncode(err))
 	}
 
 	for _, file := range files {
 		filename := file.Name()
 
-		fmt.Println(filename)
+		logger.GreenPrintln(filename)
 		if filepath.Ext(filename) == ".yaml" || filepath.Ext(filename) == ".yml" {
 			result = append(result, filepath.Join(re.InterpreterFolder, filename))
 		}
@@ -144,7 +149,7 @@ func (re *Bashy) loadInterpretersFromFile(filename string) []*Interpreter {
 func (re *Bashy) installInterpreter(interpreter Interpreter) {
 
 	installInterpreter := re.GetInterpreterForCurrentOS(interpreter.Interpreter)
-	fmt.Println("Installing " + interpreter.Name + " using " + installInterpreter.Name)
+	logger.BgreenPrintln("Installing " + interpreter.Name + " using " + installInterpreter.Name)
 
 	re.ExecCommand(installInterpreter, make(map[string]string), interpreter.Installscript)
 }
