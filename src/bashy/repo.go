@@ -1,8 +1,8 @@
 package bashy
 
 import (
+	logger "bashy/src/logger"
 	"bashy/src/utils"
-	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -16,40 +16,40 @@ func (re *Bashy) removeScript(name string) {
 
 }
 func (re *Bashy) addScript(name string) {
-	fmt.Println("Adding " + name)
+	logger.BmagentaPrintln("Adding " + name)
 	source := name
 	cacheScript := filepath.Join(re.Tmp, utils.GetMD5Hash(name)+".yml")
 
 	if strings.HasPrefix(name, "http://") || strings.HasPrefix(name, "https://") {
 		utils.DownloadFile(cacheScript, name)
 		source = cacheScript
-		fmt.Println(source)
+		logger.BmagentaPrintln(source)
 	}
 
 	scripts := re.loadConfigFromFiles(source)
 	for _, script := range scripts {
-		fmt.Println(" -  " + name)
+		logger.BmagentaPrintln(" -  " + name)
 		scriptName := filepath.Join(re.ScriptFolder, script.Name+".yml")
 		binName := filepath.Join(re.BinFolder, script.Name)
 		bin := utils.Transform("bin", script)
 		ioutil.WriteFile(binName, []byte(bin), 0777)
 
-		fmt.Println(scriptName)
+		logger.ImagentaPrintln(scriptName, "imagenta")
 		if !utils.Exists(scriptName) {
 			if len(script.Script) == 0 {
-				fmt.Println("Embedded script, nothing to include")
+				logger.GreenPrintln("Embedded script, nothing to include")
 			} else if strings.HasPrefix(script.Script, "/") {
 				//absolute local path, keep unchanged
-				fmt.Println("Absoulte path used")
+				logger.GreenPrintln("Absoulte path used")
 			} else if strings.HasPrefix(script.Script, "http://") || strings.HasPrefix(script.Script, "https://") {
-				fmt.Println("Downloading and caching external script")
+				logger.GreenPrintln("Downloading and caching external script")
 				//download it and chache
 				cacheScript := filepath.Join(re.Home, "cache", script.Name+".sh")
 				utils.Copy(script.Script, cacheScript)
 				script.Script = cacheScript
 
 			} else {
-				fmt.Println("Moving relative path file to the cache")
+				logger.GreenPrintln("Moving relative path file to the cache")
 				cacheScript := filepath.Join(re.Home, "cache", script.Name+".sh")
 				utils.Copy(script.Script, cacheScript)
 				script.Script = cacheScript
@@ -63,20 +63,20 @@ func (re *Bashy) addScript(name string) {
 }
 
 func (re *Bashy) listScript(name string) {
-	fmt.Println("Loaded scripts form: " + re.ScriptFolder)
+	logger.ImagentaPrintln("Loaded scripts form: " + re.ScriptFolder)
 	for _, script := range re.scriptFiles(re.ScriptFolder) {
-		fmt.Println(strings.Replace(script.Name(), filepath.Ext(script.Name()), "", 1) + " " + script.ModTime().Local().String())
+		logger.ImagentaPrintln(strings.Replace(script.Name(), filepath.Ext(script.Name()), "", 1) + " " + script.ModTime().Local().String())
 	}
 
 }
 
 func (re *Bashy) dumpSettings() {
-	fmt.Println("Dump Settings ")
-	fmt.Println("BinFolder: " + re.BinFolder)
-	fmt.Println("BinScriptTemplate: " + re.BinScriptTemplate)
-	fmt.Println("CacheFolder: " + re.CacheFolder)
-	fmt.Println("Home: " + re.Home)
-	fmt.Println("Instance: " + re.Instance)
-	fmt.Println("ScriptFolder: " + re.ScriptFolder)
-	fmt.Println("Tmp: " + re.Tmp)
+	logger.BgreenPrintln("Dump Settings: ")
+	logger.IcyanPrintln("BinFolder: " + re.BinFolder)
+	logger.IcyanPrintln("BinScriptTemplate: " + re.BinScriptTemplate)
+	logger.IcyanPrintln("CacheFolder: " + re.CacheFolder)
+	logger.IcyanPrintln("Home: " + re.Home)
+	logger.IcyanPrintln("Instance: " + re.Instance)
+	logger.IcyanPrintln("ScriptFolder: " + re.ScriptFolder)
+	logger.IcyanPrintln("Tmp: " + re.Tmp)
 }
