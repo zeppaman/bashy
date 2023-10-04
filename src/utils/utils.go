@@ -21,10 +21,12 @@ import (
 	"embed"
 	"errors"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 
+	"bashy/src/logger"
+
+	"github.com/schollz/progressbar/v3"
 	"gopkg.in/yaml.v2"
 )
 
@@ -36,11 +38,13 @@ func Transform(templateName string, data interface{}) string {
 
 	t, err := template.ParseFS(tpls, "templates/*")
 	if err != nil {
+		logger.BLogFatal(err)
 		panic(err)
 	}
 
 	var tpl bytes.Buffer
 	if err := t.ExecuteTemplate(&tpl, templateName+".tmpl", data); err != nil {
+		logger.BLogError(err)
 		return ""
 	}
 
@@ -78,7 +82,7 @@ func GenerateToken(len int) string {
 func WriteTextToFile(filename string, content string, mode os.FileMode) string {
 	file, err := os.Create(filename)
 	if err != nil {
-		log.Fatal(err)
+		logger.BLogFatal(err)
 	}
 
 	file.WriteString(content)
@@ -91,7 +95,7 @@ func WriteTextToFile(filename string, content string, mode os.FileMode) string {
 func WriteLinesToFile(filename string, lines []string, mode os.FileMode) string {
 	file, err := os.Create(filename)
 	if err != nil {
-		log.Fatal(err)
+		logger.BLogFatal(err)
 	}
 
 	for _, line := range lines {
@@ -109,6 +113,7 @@ func DownloadFile(filepath string, url string) error {
 	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
+		logger.BLogError(err)
 		return err
 	}
 	defer resp.Body.Close()
@@ -116,20 +121,39 @@ func DownloadFile(filepath string, url string) error {
 	// Create the file
 	out, err := os.Create(filepath)
 	if err != nil {
+		logger.BLogError(err)
 		return err
 	}
 	defer out.Close()
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
 
-	return err
+	// Create a progress bar
+	fileSize := resp.ContentLength
+	bar := progressbar.DefaultBytes(
+		fileSize,
+		logger.BiblueSprint("Downloading"),
+	)
+
+	// Create a multi writer to write to both the file and the progress bar
+	writer := io.MultiWriter(out, bar)
+
+	// Write the body to file and update the progress bar
+	_, err = io.Copy(writer, resp.Body)
+	if err != nil {
+		logger.BLogError(err)
+		return err
+	}
+
+	bar.Finish()
+	logger.BiblueSprint("Download completed")
+	return nil
 }
 
 func ReadFileLines(filename string) []string {
 	lines := []string{}
 	f, err := os.OpenFile(filename, os.O_RDONLY, os.ModePerm)
 	if err != nil {
-		log.Fatalf("open file error: %v", err)
+		logger.BLogFatal(err)
+		//log.Fatalf("open file error: %v", err)
 		return lines
 	}
 	defer f.Close()
@@ -141,8 +165,8 @@ func ReadFileLines(filename string) []string {
 			if err == io.EOF {
 				break
 			}
-
-			log.Fatalf("read file line error: %v", err)
+			logger.BLogFatal(err)
+			//log.Fatalf("read file line error: %v", err)
 			return lines
 		}
 
@@ -158,21 +182,27 @@ func Copy(src, dst string) (int64, error) {
 	}
 
 	if !sourceFileStat.Mode().IsRegular() {
+		logger.BLogError(err)
 		return 0, fmt.Errorf("%s is not a regular file", src)
 	}
 
 	source, err := os.Open(src)
 	if err != nil {
+		logger.BLogError(err)
 		return 0, err
 	}
 	defer source.Close()
 
 	destination, err := os.Create(dst)
 	if err != nil {
+		logger.BLogError(err)
 		return 0, err
 	}
 	defer destination.Close()
 	nBytes, err := io.Copy(destination, source)
+	if err != nil {
+		logger.BLogError(err)
+	}
 	return nBytes, err
 }
 
@@ -184,11 +214,13 @@ func GetMD5Hash(text string) string {
 func RemoveAll(pattern string) {
 	files, err := filepath.Glob(pattern)
 	if err != nil {
+		logger.BLogFatal(err)
 		panic(err)
 	}
 	for _, f := range files {
 		fmt.Println("removing " + f)
 		if err := os.Remove(f); err != nil {
+			logger.BLogFatal(err)
 			panic(err)
 		}
 	}
@@ -197,12 +229,14 @@ func RemoveAll(pattern string) {
 func SerializeToFile(path string, object interface{}) error {
 	data, err := yaml.Marshal(&object)
 	if err != nil {
-		fmt.Println(err)
+		//fmt.Println(err)
+		logger.BLogError(err)
 		return err
 	}
 	err = ioutil.WriteFile(path, data, 0)
 	if err != nil {
-		fmt.Println(err)
+		//fmt.Println(err)
+		logger.BLogError(err)
 		return err
 	}
 	return nil
@@ -220,8 +254,6 @@ func CurrentOS() string {
 	}
 	return os
 }
-
-
 
 func Contains[T comparable](s []T, str T) bool {
 	for _, v := range s {

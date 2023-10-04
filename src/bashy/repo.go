@@ -1,7 +1,7 @@
 package bashy
 
 import (
-	logger "bashy/src/logger"
+	"bashy/src/logger"
 	"bashy/src/utils"
 	"io/ioutil"
 	"path/filepath"
