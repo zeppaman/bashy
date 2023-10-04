@@ -10,10 +10,6 @@ import (
 	"github.com/google/logger"
 )
 
-type Logger struct {
-	*logger.Logger
-}
-
 var ColorFuncMap = map[string]*color.Color{
 	"red":     color.New(color.FgRed),
 	"green":   color.New(color.FgGreen),
@@ -184,80 +180,63 @@ var (
 	IbumagentaPrintln = CreateColoredPrintln("ibumagenta")
 	IbucyanPrintln    = CreateColoredPrintln("ibucyan")
 	IbuwhitePrintln   = CreateColoredPrintln("ibuwhite")
+	flogs             *os.File
 )
 
 func IsDebug() bool {
 	return os.Getenv("BASHY_DEBUG") == "true"
 }
 
-func NewLogger() *Logger {
-	var log *logger.Logger
+// init function to initialize the logger console and the logger file if debug mode is enabled or not enabled respectively
+func init() {
+	logger.SetFlags(0)
+	flogs, err := os.OpenFile("logs/bashy.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
+	if err != nil {
+		BLogError("Failed to open log file")
+		os.Exit(1)
+	}
 	if IsDebug() {
 		logger.SetFlags(1)
-		logFile, err := os.OpenFile("logs/bashy.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
-		if err != nil {
-			RedPrintln("Failed to open log file")
-			os.Exit(1)
-		}
-		log = logger.Init("Logger", true, false, logFile)
 		ByellowPrintln("Debug mode enabled")
-	} else {
-		logger.SetFlags(0)
-		log = logger.Init("Logger", false, false, os.Stdout)
-		logger.SetFlags(0)
 	}
 
-	return &Logger{log}
+	logger.Init("Logger", IsDebug(), IsDebug(), flogs)
 }
 
-func InfoLog(msg string) {
-	l := NewLogger()
-	if IsDebug() {
-		l.Info(msg)
-	} else {
-		l.Info(GreenSprint(msg))
-	}
+func CloseLogger() {
+	flogs.Close()
+	logger.Close()
 }
 
-func WarningLog(msg string) {
-	l := NewLogger()
-	if IsDebug() {
-		l.Warning(msg)
-	} else {
-		l.Warning(YellowSprint(msg))
-	}
+func BLogInfo(msg interface{}) {
+	BLog("info", msg)
 }
 
-func ErrorLog(msg string) {
-	l := NewLogger()
-	if IsDebug() {
-		l.Error(msg)
-	} else {
-		l.Error(RedSprint(msg))
-	}
+// LogWarning logs a warning message
+func BLogWarning(msg interface{}) {
+	BLog("warning", msg)
 }
 
-func FatalLog(msg string) {
-	l := NewLogger()
-	if IsDebug() {
-		l.Fatal(msg)
-	} else {
-		l.Fatal(RedSprint(msg))
-	}
+// LogError logs an error message
+func BLogError(msg interface{}) {
+	BLog("error", msg)
 }
 
-func Log(level string, msg string) {
+// LogFatal logs a fatal error
+func BLogFatal(msg interface{}) {
+	BLog("fatal", msg)
+}
+
+func BLog(level string, msg interface{}) {
 	switch strings.ToLower(level) {
 	case "info":
-		InfoLog(msg)
+		logger.Info(msg)
 	case "warning":
-		WarningLog(msg)
+		logger.Warning(msg)
 	case "error":
-		ErrorLog(msg)
+		logger.Error(msg)
 	case "fatal":
-		FatalLog(msg)
-	default:
-		ErrorLog("Invalid log level " + level + " for message " + msg)
+		logger.Fatal(msg)
 	}
 }
 
@@ -291,7 +270,7 @@ func JsonEncode(v interface{}) string {
 	j, err := json.MarshalIndent(v, "", "\t")
 
 	if err != nil {
-		Log("error", "Error encoding json")
+		BLogError("Error encoding json")
 		return ""
 	}
 
@@ -303,7 +282,7 @@ func JsonDecode(v interface{}) interface{} {
 	err := json.Unmarshal([]byte(v.(string)), &result)
 
 	if err != nil {
-		Log("error", "Error decoding json")
+		BLogError("Error decoding json")
 		return nil
 	}
 

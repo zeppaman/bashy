@@ -1,7 +1,7 @@
 package bashy
 
 import (
-	logger "bashy/src/logger"
+	"bashy/src/logger"
 	"bashy/src/utils"
 	"errors"
 	"fmt"
@@ -44,7 +44,7 @@ func (re *Bashy) addInterpreter(path string) {
 	}
 
 	if logger.IsDebug() {
-		logger.Log("info", "interpretersToAdd: "+fmt.Sprintf("%v", interpretersToAdd))
+		logger.BLogInfo("interpretersToAdd: " + fmt.Sprintf("%v", interpretersToAdd))
 	}
 	//remove interpreters with the same name for replacing and append
 	tmp := []*Interpreter{}
@@ -79,9 +79,9 @@ func (re *Bashy) saveInterpreters() {
 	}
 }
 func (re *Bashy) listInterpreters(name string) {
-	logger.GreenPrintln("info", "Loaded Interpreters form: "+re.InterpreterFolder)
+	logger.GreenPrintln("Loaded Interpreters form: " + re.InterpreterFolder)
 	for _, Interpreter := range re.Interpreters {
-		logger.Log("info", Interpreter.Name)
+		logger.BLogInfo(Interpreter.Name)
 	}
 
 }
@@ -99,8 +99,7 @@ func (re *Bashy) getInterpretersFileNames() []string {
 
 	files, err := ioutil.ReadDir(re.InterpreterFolder)
 	if err != nil {
-		logger.Log("error", err.Error())
-		logger.Log("error", logger.JsonEncode(err))
+		logger.BLogError(err)
 	}
 
 	for _, file := range files {
