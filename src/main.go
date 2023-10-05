@@ -2,25 +2,23 @@ package main
 
 import (
 	"bashy/src/bashy"
-	logger "bashy/src/logger"
+	"bashy/src/logger"
 	"bashy/src/utils"
-	"fmt"
 	"os"
 )
 
 func main() {
-	greenPrintln := logger.CreateColoredPrintln("green")
-	greenPrintln("OS: " + utils.CurrentOS())
+	logger.GreenPrintln("OS: " + utils.CurrentOS())
+	logger.BLogInfo("Bashy is starting...")
+
 	instance := bashy.Bashy{}
 	err := instance.Init()
 	if err == nil {
-		if logger.IsDebug() {
-			logger.Log("info", "args: "+fmt.Sprintf("%v", os.Args))
-		}
 		instance.Run(os.Args)
 	} else {
-		logger.Log("error", "not an happy ending.")
-		logger.Log("error", err.Error())
+		logger.BLogError("not an happy ending.")
+		logger.BLogError(err)
 	}
 	instance.Destroy()
+	defer logger.CloseLogger()
 }
