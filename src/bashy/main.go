@@ -33,6 +33,7 @@ type Bashy struct {
 	Tmp               string
 	Instance          string
 	InterpreterFolder string
+	LogsFolder        string
 }
 
 func (re *Bashy) Init() error {
@@ -59,6 +60,7 @@ func (re *Bashy) Init() error {
 	re.BinFolder = filepath.Join(re.Home, "bin")
 	re.Tmp = filepath.Join(re.Home, "tmp", re.Instance)
 	re.InterpreterFolder = filepath.Join(re.Home, "interpreters")
+	re.LogsFolder = filepath.Join(re.Home, "logs")
 	err := os.MkdirAll(re.ScriptFolder, os.ModePerm)
 	if err != nil {
 		logger.BLogFatal(err)
@@ -79,6 +81,10 @@ func (re *Bashy) Init() error {
 	}
 
 	err = os.MkdirAll(re.InterpreterFolder, os.ModePerm)
+	if err != nil {
+		logger.BLogFatal(err)
+	}
+	err = os.MkdirAll(re.LogsFolder, os.ModePerm)
 	if err != nil {
 		logger.BLogFatal(err)
 	}

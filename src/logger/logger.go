@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/user"
 	"strings"
 
 	"github.com/fatih/color"
@@ -181,18 +182,28 @@ var (
 	IbucyanPrintln    = CreateColoredPrintln("ibucyan")
 	IbuwhitePrintln   = CreateColoredPrintln("ibuwhite")
 	flogs             *os.File
+	pathToBashy       string
 )
 
 func IsDebug() bool {
 	return os.Getenv("BASHY_DEBUG") == "true"
 }
 
-// init function to initialize the logger console and the logger file if debug mode is enabled or not enabled respectively
 func init() {
 	logger.SetFlags(0)
-	flogs, err := os.OpenFile("logs/bashy.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
+	usr, err := user.Current()
 	if err != nil {
-		BLogError("Failed to open log file")
+		fmt.Println("Failed to get current user")
+		os.Exit(1)
+	}
+	if os.Getenv("BASHY_HOME") == "" {
+		pathToBashy = usr.HomeDir + "/.bashy"
+	} else {
+		pathToBashy = os.Getenv("BASHY_HOME")
+	}
+	flogs, err := os.OpenFile(pathToBashy+"/logs/bashy.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0660)
+	if err != nil {
+		fmt.Println("Failed to open log file")
 		os.Exit(1)
 	}
 	if IsDebug() {
