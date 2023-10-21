@@ -316,6 +316,15 @@ func (re *Bashy) LoadInternalCommands() []*cli.Command {
 			},
 		},
 		{
+			Name:    "clearcache",
+			Aliases: []string{"rmc"},
+			Usage:   "Clear all cache",
+			Action: func(c *cli.Context) error {
+				re.clearcache()
+				return nil
+			},
+		},
+		{
 			Name:    "repo",
 			Aliases: []string{"r"},
 			Usage:   "manage local scripts",
