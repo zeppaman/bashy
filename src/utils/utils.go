@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bashy/src/logger"
 	"bytes"
 	"crypto/md5"
 	"crypto/rand"
@@ -23,8 +24,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-
-	"bashy/src/logger"
 
 	"github.com/schollz/progressbar/v3"
 	"gopkg.in/yaml.v2"
