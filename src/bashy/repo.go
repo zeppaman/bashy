@@ -80,3 +80,7 @@ func (re *Bashy) dumpSettings() {
 	logger.IcyanPrintln("ScriptFolder: " + re.ScriptFolder)
 	logger.IcyanPrintln("Tmp: " + re.Tmp)
 }
+
+func (re *Bashy) clearcache() {
+	utils.RemoveAll(re.CacheFolder)
+}
